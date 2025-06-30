@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Reporte de Reservas - IPEC Barva</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0;
+      background: #f7fafd;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      padding: 32px 0 20px;
+      text-align: center;
+      background: #fff;
+      border-bottom: 1px solid #e6e8ee;
+      margin-bottom: 30px;
+      width: 100%; max-width: 1000px;
+    }
+    header img { max-width: 145px; margin: 0 auto 12px; }
+    header h1 { font-size: 2.2em; margin: 0; font-weight: 600; color: #183357; }
+    header h2 { font-size: 1.25em; margin: 10px 0 0; color: #4674A9; }
+
+    main {
+      background: #fff;
+      border-radius: 13px;
+      padding: 24px;
+      max-width: 1000px; width: 100%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.07);
+    }
+    #filtros {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+      margin-bottom: 16px;
+    }
+    #filtros label { font-weight: 600; margin-right: 8px; }
+    #filtros select, #filtros input[type="date"], #filtros input[type="text"] {
+      border: 1px solid #bcd4e8; border-radius: 6px;
+      padding: 12px; font-size: 1.1em; min-width: 160px;
+    }
+    #filtros button {
+      background: #4d7bc0; color: #fff; font-weight: 600;
+      border: none; padding: 12px 24px; border-radius: 8px;
+      cursor: pointer; font-size: 1.1em;
+    }
+    #filtros button:hover { background: #285194; }
+    #msgError { margin-top: 12px; color: #e03e3e; font-weight: 600; width:100%; text-align:center; }
+
+    .caja-totales {
+      display: flex; gap: 16px; justify-content: center; margin: 16px 0;
+    }
+    .caja-totales > div {
+      background: #ecf3fc;
+      border: 2px solid #4d7bc0;
+      border-radius: 8px;
+      padding: 16px 24px;
+      font-size: 1.6em;
+      font-weight: 700;
+      color: #183357;
+      flex: 1;
+      text-align: center;
+    }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      margin-top: 16px; font-size: 1.05em;
+    }
+    th, td {
+      border-bottom: 1px solid #e7e9f3;
+      padding: 14px 10px; text-align: center;
+    }
+    th {
+      background: #f8fafd; color: #345184; font-weight: 700;
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 16px 12px; }
+      #filtros select, #filtros input, #filtros button {
+        width: 100%; margin-bottom: 12px;
+      }
+      table, th, td { font-size: 0.9em; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.24.0/dist/supabase.min.js"></script>
+</head>
+<body>
+  <header>
+    <img src="Logo PNG.png" alt="IPEC Barva" />
+    <h1>Reporte de Reservas de Tiquetes</h1>
+    <h2>Comedor estudiantil IPEC Barva</h2>
+  </header>
+  <main>
+    <div id="filtros">
+      <label for="fechaFiltro">Fecha:</label>
+      <input type="date" id="fechaFiltro" />
+      <label for="turnoFiltro">Turno:</label>
+      <select id="turnoFiltro">
+        <option value="todos">Todos</option>
+        <option value="Día">Día</option>
+        <option value="Noche">Noche</option>
+      </select>
+      <label for="busqueda">Cédula / Área:</label>
+      <input type="text" id="busqueda" placeholder="texto libre" />
+      <button id="btnConsultar">Consultar Reservas</button>
+      <div id="msgError"></div>
+    </div>
+
+    <div class="caja-totales" id="totales">
+      <div id="totDia">Día: 0</div>
+      <div id="totNoche">Noche: 0</div>
+      <div id="totGen">Total: 0</div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Cédula</th>
+          <th>Nombre</th>
+          <th>Fecha</th>
+          <th>Hora Reserva</th>
+          <th>Turno</th>
+          <th>Área Académica</th>
+          <th>Nivel</th>
+        </tr>
+      </thead>
+      <tbody id="tablaReservas"></tbody>
+    </table>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const supabaseClient = window.supabase.createClient(
+        'https://pqwpieuxyudsvetytoac.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxd3BpZXV4eXVkc3ZldHl0b2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNTQ5MjksImV4cCI6MjA2NjYzMDkyOX0.FZOSbJTSiedP1yrwgXn_GLLeELxfzQ13fnIss7aDaJ4'
+      );
+      const btn = document.getElementById('btnConsultar');
+      const fechaF = document.getElementById('fechaFiltro');
+      const turnoF = document.getElementById('turnoFiltro');
+      const busq  = document.getElementById('busqueda');
+      const tabla = document.getElementById('tablaReservas');
+      const msg   = document.getElementById('msgError');
+      const totDia   = document.getElementById('totDia');
+      const totNoche = document.getElementById('totNoche');
+      const totGen   = document.getElementById('totGen');
+
+      btn.addEventListener('click', async () => {
+        msg.textContent = '';
+        tabla.innerHTML = '';
+        totDia.textContent   = 'Día: 0';
+        totNoche.textContent = 'Noche: 0';
+        totGen.textContent   = 'Total: 0';
+
+        const fecha = fechaF.value;
+        const turno = turnoF.value;
+        const filtro = busq.value.trim().toLowerCase();
+        if (!fecha) {
+          msg.textContent = 'Seleccione una fecha.';
+          return;
+        }
+
+        try {
+          let query = supabaseClient
+            .from('reservas_tiquete')
+            .select('*')
+            .eq('fecha', fecha);
+          if (turno !== 'todos') query = query.eq('turno', turno);
+          const { data: reservas, error: errR } = await query.order('hora_reserva', { ascending: true });
+          if (errR) throw errR;
+          if (!reservas || reservas.length === 0) {
+            msg.textContent = 'No hay reservas para esos filtros.';
+            return;
+          }
+
+          const { data: estudiantes, error: errE } = await supabaseClient
+            .from('estudiantes')
+            .select('cedula,nivel');
+          if (errE) throw errE;
+          const nivelMap = {};
+          estudiantes.forEach(e => nivelMap[e.cedula] = e.nivel);
+
+          let cDia=0, cNoche=0;
+          reservas.forEach(r => {
+            if (filtro) {
+              const okCed = r.cedula.toLowerCase().includes(filtro);
+              const okArea= (r.area_academica||'').toLowerCase().includes(filtro);
+              if (!okCed && !okArea) return;
+            }
+            if (r.turno === 'Día') cDia++;
+            else if (r.turno === 'Noche') cNoche++;
+            const nivel = nivelMap[r.cedula]||'';
+            const tr = document.createElement('tr');
+            tr.innerHTML= `
+              <td>${r.cedula}</td>
+              <td>${r.nombre_completo||''}</td>
+              <td>${r.fecha}</td>
+              <td>${r.hora_reserva}</td>
+              <td>${r.turno}</td>
+              <td>${r.area_academica||''}</td>
+              <td>${nivel}</td>
+            `;
+            tabla.appendChild(tr);
+          });
+
+          totDia.textContent   = `Día: ${cDia}`;
+          totNoche.textContent = `Noche: ${cNoche}`;
+          totGen.textContent   = `Total: ${tabla.rows.length}`;
+
+        } catch (e) {
+          console.error(e);
+          msg.textContent = 'Error al consultar la base de datos.';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
