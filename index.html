@@ -35,36 +35,49 @@
       max-width: 1000px; width: 100%;
       box-shadow: 0 0 10px rgba(0,0,0,0.07);
     }
-    #filtros {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
-      margin-bottom: 16px;
-    }
-    #filtros label { font-weight: 600; margin-right: 8px; }
-    #filtros select, #filtros input[type="date"], #filtros input[type="text"] {
+    #filtros-principales label { font-weight: 600; margin-right: 8px; }
+    #filtros-principales select,
+    #filtros-principales input[type="date"] {
       border: 1px solid #bcd4e8; border-radius: 6px;
-      padding: 12px; font-size: 1.1em; min-width: 160px;
+      padding: 12px; font-size: 1.1em; margin-right: 12px;
+      min-width: 160px;
     }
-    #filtros button {
+    #filtros-principales button {
       background: #4d7bc0; color: #fff; font-weight: 600;
       border: none; padding: 12px 24px; border-radius: 8px;
       cursor: pointer; font-size: 1.1em;
     }
-    #filtros button:hover { background: #285194; }
-    #msgError { margin-top: 12px; color: #e03e3e; font-weight: 600; width:100%; text-align:center; }
+    #filtros-principales button:hover { background: #285194; }
+    #msgError { margin-top: 12px; color: #e03e3e; font-weight: 600; }
 
     .caja-totales {
-      display: flex; gap: 16px; justify-content: center; margin: 16px 0;
+      display: flex;
+      justify-content: space-around;
+      margin: 16px 0;
     }
-    .caja-totales > div {
+    .caja-totales .caja {
       background: #ecf3fc;
       border: 2px solid #4d7bc0;
       border-radius: 8px;
-      padding: 16px 24px;
-      font-size: 1.6em;
+      padding: 16px;
+      flex: 1;
+      margin: 0 8px;
+      text-align: center;
+      font-size: 1.3em;
       font-weight: 700;
       color: #183357;
-      flex: 1;
+    }
+
+    #filtros-secundarios {
+      margin: 24px 0;
+      display: none;
       text-align: center;
+    }
+    #filtros-secundarios label { font-weight: 600; margin: 0 8px; }
+    #filtros-secundarios input {
+      border: 1px solid #bcd4e8; border-radius: 6px;
+      padding: 10px; font-size: 1em; margin: 0 8px;
+      width: 180px;
     }
 
     table {
@@ -81,9 +94,14 @@
 
     @media (max-width: 600px) {
       main { padding: 16px 12px; }
-      #filtros select, #filtros input, #filtros button {
+      #filtros-principales select,
+      #filtros-principales input,
+      #filtros-principales button {
         width: 100%; margin-bottom: 12px;
       }
+      .caja-totales { flex-direction: column; }
+      .caja-totales .caja { margin: 8px 0; }
+      #filtros-secundarios input { display: block; margin: 8px auto; width: 90%; }
       table, th, td { font-size: 0.9em; }
     }
   </style>
@@ -96,7 +114,8 @@
     <h2>Comedor estudiantil IPEC Barva</h2>
   </header>
   <main>
-    <div id="filtros">
+    <!-- filtros iniciales -->
+    <div id="filtros-principales">
       <label for="fechaFiltro">Fecha:</label>
       <input type="date" id="fechaFiltro" />
       <label for="turnoFiltro">Turno:</label>
@@ -105,18 +124,26 @@
         <option value="Día">Día</option>
         <option value="Noche">Noche</option>
       </select>
-      <label for="busqueda">Cédula / Área:</label>
-      <input type="text" id="busqueda" placeholder="texto libre" />
       <button id="btnConsultar">Consultar Reservas</button>
       <div id="msgError"></div>
     </div>
 
+    <!-- totales -->
     <div class="caja-totales" id="totales">
-      <div id="totDia">Día: 0</div>
-      <div id="totNoche">Noche: 0</div>
-      <div id="totGen">Total: 0</div>
+      <div class="caja" id="totalDia">Día: 0</div>
+      <div class="caja" id="totalNoche">Noche: 0</div>
+      <div class="caja" id="totalGeneral">Total: 0</div>
     </div>
 
+    <!-- filtros secundarios -->
+    <div id="filtros-secundarios">
+      <label for="cedulaFiltro">Cédula:</label>
+      <input type="text" id="cedulaFiltro" placeholder="Filtrar cédula" />
+      <label for="areaFiltro">Área Académica:</label>
+      <input type="text" id="areaFiltro" placeholder="Filtrar área" />
+    </div>
+
+    <!-- tabla -->
     <table>
       <thead>
         <tr>
@@ -135,87 +162,98 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const supabaseClient = window.supabase.createClient(
-        'https://pqwpieuxyudsvetytoac.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxd3BpZXV4eXVkc3ZldHl0b2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNTQ5MjksImV4cCI6MjA2NjYzMDkyOX0.FZOSbJTSiedP1yrwgXn_GLLeELxfzQ13fnIss7aDaJ4'
-      );
-      const btn = document.getElementById('btnConsultar');
-      const fechaF = document.getElementById('fechaFiltro');
-      const turnoF = document.getElementById('turnoFiltro');
-      const busq  = document.getElementById('busqueda');
-      const tabla = document.getElementById('tablaReservas');
-      const msg   = document.getElementById('msgError');
-      const totDia   = document.getElementById('totDia');
-      const totNoche = document.getElementById('totNoche');
-      const totGen   = document.getElementById('totGen');
+      const supabaseUrl = 'https://pqwpieuxyudsvetytoac.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxd3BpZXV4eXVkc3ZldHl0b2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNTQ5MjksImV4cCI6MjA2NjYzMDkyOX0.FZOSbJTSiedP1yrwgXn_GLLeELxfzQ13fnIss7aDaJ4';
+      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+      const btn         = document.getElementById('btnConsultar');
+      const fechaF      = document.getElementById('fechaFiltro');
+      const turnoF      = document.getElementById('turnoFiltro');
+      const cedulaF     = document.getElementById('cedulaFiltro');
+      const areaF       = document.getElementById('areaFiltro');
+      const filtro2     = document.getElementById('filtros-secundarios');
+      const tabla       = document.getElementById('tablaReservas');
+      const msgError    = document.getElementById('msgError');
+      const tdDia       = document.getElementById('totalDia');
+      const tdNoche     = document.getElementById('totalNoche');
+      const tdGeneral   = document.getElementById('totalGeneral');
 
       btn.addEventListener('click', async () => {
-        msg.textContent = '';
-        tabla.innerHTML = '';
-        totDia.textContent   = 'Día: 0';
-        totNoche.textContent = 'Noche: 0';
-        totGen.textContent   = 'Total: 0';
+        msgError.textContent = '';
+        tabla.innerHTML      = '';
+        filtro2.style.display= 'none';
+        cedulaF.value        = '';
+        areaF.value          = '';
+        tdDia.textContent    = 'Día: 0';
+        tdNoche.textContent  = 'Noche: 0';
+        tdGeneral.textContent= 'Total: 0';
 
         const fecha = fechaF.value;
         const turno = turnoF.value;
-        const filtro = busq.value.trim().toLowerCase();
         if (!fecha) {
-          msg.textContent = 'Seleccione una fecha.';
+          msgError.textContent = 'Seleccione una fecha.';
           return;
         }
 
         try {
-          let query = supabaseClient
+          let q = supabase
             .from('reservas_tiquete')
             .select('*')
             .eq('fecha', fecha);
-          if (turno !== 'todos') query = query.eq('turno', turno);
-          const { data: reservas, error: errR } = await query.order('hora_reserva', { ascending: true });
-          if (errR) throw errR;
+          if (turno !== 'todos') q = q.eq('turno', turno);
+
+          const { data: reservas, error } = await q.order('hora_reserva', { ascending: true });
+          if (error) throw error;
           if (!reservas || reservas.length === 0) {
-            msg.textContent = 'No hay reservas para esos filtros.';
+            msgError.textContent = 'No hay reservas para esos filtros.';
             return;
           }
 
-          const { data: estudiantes, error: errE } = await supabaseClient
-            .from('estudiantes')
-            .select('cedula,nivel');
-          if (errE) throw errE;
-          const nivelMap = {};
-          estudiantes.forEach(e => nivelMap[e.cedula] = e.nivel);
-
-          let cDia=0, cNoche=0;
+          // Mostrar filtros secundarios
+          filtro2.style.display = 'block';
+          // Contar y renderizar
+          let cntDia = 0, cntNoche = 0;
           reservas.forEach(r => {
-            if (filtro) {
-              const okCed = r.cedula.toLowerCase().includes(filtro);
-              const okArea= (r.area_academica||'').toLowerCase().includes(filtro);
-              if (!okCed && !okArea) return;
-            }
-            if (r.turno === 'Día') cDia++;
-            else if (r.turno === 'Noche') cNoche++;
-            const nivel = nivelMap[r.cedula]||'';
+            if (r.turno === 'Día') cntDia++;
+            else if (r.turno === 'Noche') cntNoche++;
             const tr = document.createElement('tr');
-            tr.innerHTML= `
+            tr.innerHTML = `
               <td>${r.cedula}</td>
               <td>${r.nombre_completo||''}</td>
               <td>${r.fecha}</td>
               <td>${r.hora_reserva}</td>
               <td>${r.turno}</td>
               <td>${r.area_academica||''}</td>
-              <td>${nivel}</td>
+              <td>${r.nivel||''}</td>
             `;
             tabla.appendChild(tr);
           });
 
-          totDia.textContent   = `Día: ${cDia}`;
-          totNoche.textContent = `Noche: ${cNoche}`;
-          totGen.textContent   = `Total: ${tabla.rows.length}`;
-
+          tdDia.textContent     = `Día: ${cntDia}`;
+          tdNoche.textContent   = `Noche: ${cntNoche}`;
+          tdGeneral.textContent = `Total: ${reservas.length}`;
         } catch (e) {
           console.error(e);
-          msg.textContent = 'Error al consultar la base de datos.';
+          msgError.textContent = 'Error al consultar la base de datos.';
         }
       });
+
+      // aplicar filtro por cédula o área sobre lo ya cargado
+      cedulaF.addEventListener('input', filtrarTabla);
+      areaF.addEventListener('input', filtrarTabla);
+
+      function filtrarTabla() {
+        const termCed = cedulaF.value.trim().toLowerCase();
+        const termArea= areaF.value.trim().toLowerCase();
+        Array.from(tabla.rows).forEach(row => {
+          const ced = row.cells[0].textContent.toLowerCase();
+          const area= row.cells[5].textContent.toLowerCase();
+          row.style.display = (
+            (!termCed || ced.includes(termCed)) &&
+            (!termArea|| area.includes(termArea))
+          ) ? '' : 'none';
+        });
+      }
     });
   </script>
 </body>
