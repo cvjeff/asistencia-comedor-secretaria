@@ -27,6 +27,12 @@
     header img { max-width: 145px; margin: 0 auto 12px; }
     header h1 { font-size: 2.2em; margin: 0; font-weight: 600; color: #183357; }
     header h2 { font-size: 1.25em; margin: 10px 0 0; color: #4674A9; }
+    #fechaGrande {
+      font-size: 1.4em;
+      margin-top: 12px;
+      color: #375c91;
+      font-weight: 600;
+    }
 
     main {
       background: #fff;
@@ -35,49 +41,76 @@
       max-width: 1000px; width: 100%;
       box-shadow: 0 0 10px rgba(0,0,0,0.07);
     }
-    #filtros-principales label { font-weight: 600; margin-right: 8px; }
-    #filtros-principales select,
-    #filtros-principales input[type="date"] {
-      border: 1px solid #bcd4e8; border-radius: 6px;
-      padding: 12px; font-size: 1.1em; margin-right: 12px;
+    #filtros {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+      margin-bottom: 16px;
+    }
+    #filtros label { font-weight: 600; }
+    #filtros input[type="date"],
+    #filtros select,
+    #filtros button {
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: 1em;
+      border-radius: 6px;
+      transition: border .12s, background .2s;
+    }
+    #filtros input[type="date"],
+    #filtros select {
+      border: 1px solid #bcd4e8;
+      background: #f9fbfd;
+      padding: 10px 12px;
       min-width: 160px;
     }
-    #filtros-principales button {
-      background: #4d7bc0; color: #fff; font-weight: 600;
-      border: none; padding: 12px 24px; border-radius: 8px;
-      cursor: pointer; font-size: 1.1em;
+    #filtros select { cursor: pointer; }
+    #filtros input:focus,
+    #filtros select:focus {
+      border: 1.5px solid #4674A9;
+      outline: none;
+      background: #f6f9fc;
     }
-    #filtros-principales button:hover { background: #285194; }
+    #filtros button {
+      background: #4d7bc0;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    #filtros button:hover { background: #285194; }
     #msgError { margin-top: 12px; color: #e03e3e; font-weight: 600; }
 
-    .caja-totales {
-      display: flex;
-      justify-content: space-around;
-      margin: 16px 0;
+    .totales-container {
+      display: flex; gap: 16px; justify-content: center; margin: 24px 0;
     }
-    .caja-totales .caja {
-      background: #ecf3fc;
-      border: 2px solid #4d7bc0;
+    .caja-total {
+      background: #e1f0ff;
+      padding: 20px 30px;
       border-radius: 8px;
-      padding: 16px;
-      flex: 1;
-      margin: 0 8px;
       text-align: center;
-      font-size: 1.3em;
+      font-size: 1.4em;
       font-weight: 700;
-      color: #183357;
+      color: #184778;
+      flex: 1;
     }
 
-    #filtros-secundarios {
-      margin: 24px 0;
-      display: none;
-      text-align: center;
+    #filtrosExtras {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+      margin: 20px 0;
     }
-    #filtros-secundarios label { font-weight: 600; margin: 0 8px; }
-    #filtros-secundarios input {
-      border: 1px solid #bcd4e8; border-radius: 6px;
-      padding: 10px; font-size: 1em; margin: 0 8px;
-      width: 180px;
+    #filtrosExtras label { font-weight: 600; }
+    #filtrosExtras input {
+      border: 1px solid #bcd4e8;
+      background: #f9fbfd;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 1em;
+      min-width: 160px;
+      transition: border .12s;
+    }
+    #filtrosExtras input:focus {
+      border: 1.5px solid #4674A9;
+      outline: none;
+      background: #f6f9fc;
     }
 
     table {
@@ -92,169 +125,179 @@
       background: #f8fafd; color: #345184; font-weight: 700;
     }
 
-    @media (max-width: 600px) {
-      main { padding: 16px 12px; }
-      #filtros-principales select,
-      #filtros-principales input,
-      #filtros-principales button {
-        width: 100%; margin-bottom: 12px;
-      }
-      .caja-totales { flex-direction: column; }
-      .caja-totales .caja { margin: 8px 0; }
-      #filtros-secundarios input { display: block; margin: 8px auto; width: 90%; }
-      table, th, td { font-size: 0.9em; }
+    #btnPrint {
+      display: block;
+      margin: 24px auto 0;
+      background: #375c91;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #btnPrint:hover { background: #28447c; }
+
+    footer {
+      text-align: center;
+      font-size: 0.95em;
+      color: #8190a8;
+      background: #f7fafd;
+      padding: 16px 0;
+      width: 100%;
+      border-top: 1px solid #e6e8ee;
+      margin-top: auto;
+    }
+
+    /*** ESTILOS DE IMPRESIÓN ***/
+    @media print {
+      /* ocultar filtros completos y controles no necesarios */
+      #filtros, #filtrosExtras, #msgError, #btnPrint, footer { display: none !important; }
+      /* mostrar fecha grande y totales */
+      header, #fechaGrande, .totales-container, table { page-break-inside: avoid; }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.24.0/dist/supabase.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
+    const supabaseUrl = 'https://pqwpieuxyudsvetytoac.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxd3BpZXV4eXVkc3ZldHl0b2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNTQ5MjksImV4cCI6MjA2NjYzMDkyOX0.FZOSbJTSiedP1yrwgXn_GLLeELxfzQ13fnIss7aDaJ4';
+    window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+  </script>
 </head>
 <body>
   <header>
     <img src="Logo PNG.png" alt="IPEC Barva" />
     <h1>Reporte de Reservas de Tiquetes</h1>
     <h2>Comedor estudiantil IPEC Barva</h2>
+    <div id="fechaGrande"></div>
   </header>
+
   <main>
-    <!-- filtros iniciales -->
-    <div id="filtros-principales">
+    <div id="filtros">
       <label for="fechaFiltro">Fecha:</label>
       <input type="date" id="fechaFiltro" />
+
       <label for="turnoFiltro">Turno:</label>
       <select id="turnoFiltro">
         <option value="todos">Todos</option>
         <option value="Día">Día</option>
         <option value="Noche">Noche</option>
       </select>
-      <button id="btnConsultar">Consultar Reservas</button>
-      <div id="msgError"></div>
+
+      <button id="btnConsultar">Consultar</button>
+    </div>
+    <div id="msgError"></div>
+
+    <div class="totales-container" id="containerTotales" style="display:none;">
+      <div class="caja-total" id="totalDia">Día: 0</div>
+      <div class="caja-total" id="totalNoche">Noche: 0</div>
+      <div class="caja-total" id="totalGeneral">Total: 0</div>
     </div>
 
-    <!-- totales -->
-    <div class="caja-totales" id="totales">
-      <div class="caja" id="totalDia">Día: 0</div>
-      <div class="caja" id="totalNoche">Noche: 0</div>
-      <div class="caja" id="totalGeneral">Total: 0</div>
-    </div>
-
-    <!-- filtros secundarios -->
-    <div id="filtros-secundarios">
+    <div id="filtrosExtras" style="display:none;">
       <label for="cedulaFiltro">Cédula:</label>
-      <input type="text" id="cedulaFiltro" placeholder="Filtrar cédula" />
+      <input type="text" id="cedulaFiltro" placeholder="Filtrar por cédula" />
+
       <label for="areaFiltro">Área Académica:</label>
-      <input type="text" id="areaFiltro" placeholder="Filtrar área" />
+      <input type="text" id="areaFiltro" placeholder="Filtrar por área" />
     </div>
 
-    <!-- tabla -->
     <table>
       <thead>
         <tr>
-          <th>Cédula</th>
-          <th>Nombre</th>
-          <th>Fecha</th>
-          <th>Hora Reserva</th>
-          <th>Turno</th>
-          <th>Área Académica</th>
-          <th>Nivel</th>
+          <th>Cédula</th><th>Nombre</th><th>Fecha</th><th>Hora</th>
+          <th>Turno</th><th>Área Académica</th><th>Nivel</th>
         </tr>
       </thead>
       <tbody id="tablaReservas"></tbody>
     </table>
+
+    <button id="btnPrint">Imprimir</button>
   </main>
 
+  <footer>
+    Todos los derechos reservados: Ing. Jeffry Carballo Vargas, Mag.
+  </footer>
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const supabaseUrl = 'https://pqwpieuxyudsvetytoac.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxd3BpZXV4eXVkc3ZldHl0b2FjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwNTQ5MjksImV4cCI6MjA2NjYzMDkyOX0.FZOSbJTSiedP1yrwgXn_GLLeELxfzQ13fnIss7aDaJ4';
-      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    document.getElementById('btnConsultar').onclick = async () => {
+      const fecha = document.getElementById('fechaFiltro').value;
+      const turno = document.getElementById('turnoFiltro').value;
+      document.getElementById('msgError').textContent = '';
+      const tabla = document.getElementById('tablaReservas');
+      tabla.innerHTML = '';
+      document.getElementById('containerTotales').style.display = 'none';
+      document.getElementById('filtrosExtras').style.display = 'none';
+      document.getElementById('fechaGrande').textContent = fecha ? `Fecha: ${fecha}` : '';
 
-      const btn         = document.getElementById('btnConsultar');
-      const fechaF      = document.getElementById('fechaFiltro');
-      const turnoF      = document.getElementById('turnoFiltro');
-      const cedulaF     = document.getElementById('cedulaFiltro');
-      const areaF       = document.getElementById('areaFiltro');
-      const filtro2     = document.getElementById('filtros-secundarios');
-      const tabla       = document.getElementById('tablaReservas');
-      const msgError    = document.getElementById('msgError');
-      const tdDia       = document.getElementById('totalDia');
-      const tdNoche     = document.getElementById('totalNoche');
-      const tdGeneral   = document.getElementById('totalGeneral');
+      if (!fecha) {
+        document.getElementById('msgError').textContent = 'Seleccione una fecha.';
+        return;
+      }
 
-      btn.addEventListener('click', async () => {
-        msgError.textContent = '';
-        tabla.innerHTML      = '';
-        filtro2.style.display= 'none';
-        cedulaF.value        = '';
-        areaF.value          = '';
-        tdDia.textContent    = 'Día: 0';
-        tdNoche.textContent  = 'Noche: 0';
-        tdGeneral.textContent= 'Total: 0';
-
-        const fecha = fechaF.value;
-        const turno = turnoF.value;
-        if (!fecha) {
-          msgError.textContent = 'Seleccione una fecha.';
+      try {
+        let q = window.supabase
+          .from('reservas_tiquete').select('*')
+          .eq('fecha', fecha);
+        if (turno !== 'todos') q = q.eq('turno', turno);
+        const { data: reservas, error } = await q.order('hora_reserva', { ascending: true });
+        if (error) throw error;
+        if (!reservas.length) {
+          document.getElementById('msgError').textContent = 'No hay reservas.';
           return;
         }
 
-        try {
-          let q = supabase
-            .from('reservas_tiquete')
-            .select('*')
-            .eq('fecha', fecha);
-          if (turno !== 'todos') q = q.eq('turno', turno);
+        const { data: ests } = await window.supabase
+          .from('estudiantes').select('cedula,nivel');
+        const nivelMap = {}; ests.forEach(e=> nivelMap[e.cedula]=e.nivel);
 
-          const { data: reservas, error } = await q.order('hora_reserva', { ascending: true });
-          if (error) throw error;
-          if (!reservas || reservas.length === 0) {
-            msgError.textContent = 'No hay reservas para esos filtros.';
-            return;
-          }
-
-          // Mostrar filtros secundarios
-          filtro2.style.display = 'block';
-          // Contar y renderizar
-          let cntDia = 0, cntNoche = 0;
-          reservas.forEach(r => {
-            if (r.turno === 'Día') cntDia++;
-            else if (r.turno === 'Noche') cntNoche++;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${r.cedula}</td>
-              <td>${r.nombre_completo||''}</td>
-              <td>${r.fecha}</td>
-              <td>${r.hora_reserva}</td>
-              <td>${r.turno}</td>
-              <td>${r.area_academica||''}</td>
-              <td>${r.nivel||''}</td>
-            `;
-            tabla.appendChild(tr);
-          });
-
-          tdDia.textContent     = `Día: ${cntDia}`;
-          tdNoche.textContent   = `Noche: ${cntNoche}`;
-          tdGeneral.textContent = `Total: ${reservas.length}`;
-        } catch (e) {
-          console.error(e);
-          msgError.textContent = 'Error al consultar la base de datos.';
-        }
-      });
-
-      // aplicar filtro por cédula o área sobre lo ya cargado
-      cedulaF.addEventListener('input', filtrarTabla);
-      areaF.addEventListener('input', filtrarTabla);
-
-      function filtrarTabla() {
-        const termCed = cedulaF.value.trim().toLowerCase();
-        const termArea= areaF.value.trim().toLowerCase();
-        Array.from(tabla.rows).forEach(row => {
-          const ced = row.cells[0].textContent.toLowerCase();
-          const area= row.cells[5].textContent.toLowerCase();
-          row.style.display = (
-            (!termCed || ced.includes(termCed)) &&
-            (!termArea|| area.includes(termArea))
-          ) ? '' : 'none';
+        let d=0, n=0;
+        reservas.forEach(r => {
+          if (r.turno==='Día') d++;
+          else if (r.turno==='Noche') n++;
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${r.cedula}</td>
+            <td>${r.nombre_completo||''}</td>
+            <td>${r.fecha}</td>
+            <td>${r.hora_reserva}</td>
+            <td>${r.turno}</td>
+            <td>${r.area_academica||''}</td>
+            <td>${nivelMap[r.cedula]||''}</td>
+          `;
+          tabla.appendChild(tr);
         });
+
+        document.getElementById('totalDia').textContent = `Día: ${d}`;
+        document.getElementById('totalNoche').textContent = `Noche: ${n}`;
+        document.getElementById('totalGeneral').textContent = `Total: ${reservas.length}`;
+        document.getElementById('containerTotales').style.display = 'flex';
+        document.getElementById('filtrosExtras').style.display = 'flex';
+
+        // filtros extra
+        document.getElementById('cedulaFiltro').oninput = () => {
+          const val = document.getElementById('cedulaFiltro').value.toLowerCase();
+          tabla.querySelectorAll('tr').forEach(row => {
+            row.style.display = row.cells[0].textContent.toLowerCase().includes(val) ? '' : 'none';
+          });
+        };
+        document.getElementById('areaFiltro').oninput = () => {
+          const val = document.getElementById('areaFiltro').value.toLowerCase();
+          tabla.querySelectorAll('tr').forEach(row => {
+            row.style.display = row.cells[5].textContent.toLowerCase().includes(val) ? '' : 'none';
+          });
+        };
+
+      } catch (e) {
+        console.error(e);
+        document.getElementById('msgError').textContent = 'Error al consultar la base.';
       }
-    });
+    };
+
+    document.getElementById('btnPrint').onclick = () => window.print();
   </script>
 </body>
 </html>
