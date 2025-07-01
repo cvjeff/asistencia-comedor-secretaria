@@ -183,7 +183,7 @@
       <label for="turnoFiltro">Turno:</label>
       <select id="turnoFiltro">
         <option value="todos">Todos</option>
-        <option value="Día">Día</option>
+        <option value="Dia">Dia</option>
         <option value="Noche">Noche</option>
       </select>
 
@@ -192,7 +192,7 @@
     <div id="msgError"></div>
 
     <div class="totales-container" id="containerTotales" style="display:none;">
-      <div class="caja-total" id="totalDia">Día: 0</div>
+      <div class="caja-total" id="totalDia">Dia: 0</div>
       <div class="caja-total" id="totalNoche">Noche: 0</div>
       <div class="caja-total" id="totalGeneral">Total: 0</div>
     </div>
@@ -252,38 +252,49 @@
 
         const { data: ests } = await window.supabase
           .from('estudiantes').select('cedula,nivel');
-        const nivelMap = {}; ests.forEach(e=> nivelMap[e.cedula]=e.nivel);
+        const nivelMap = {}; ests.forEach(e => nivelMap[e.cedula] = e.nivel);
 
-        let d=0, n=0;
+        // Función para normalizar turno (quita espacios, minúsculas y tildes)
+        function normalize(s) {
+          return String(s || '')
+            .trim()
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[̀-ͯ]/g, '');
+        }
+
+        let d = 0, n = 0;
         reservas.forEach(r => {
-          if (r.turno==='Día') d++;
-          else if (r.turno==='Noche') n++;
+          const turnoNorm = normalize(r.turno);
+          console.log('Turno normalizado:', turnoNorm);
+          if (turnoNorm === 'dia') d++;
+          else if (turnoNorm === 'noche') n++;
+
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${r.cedula}</td>
-            <td>${r.nombre_completo||''}</td>
+            <td>${r.nombre_completo || ''}</td>
             <td>${r.fecha}</td>
             <td>${r.hora_reserva}</td>
             <td>${r.turno}</td>
-            <td>${r.area_academica||''}</td>
-            <td>${nivelMap[r.cedula]||''}</td>
+            <td>${r.area_academica || ''}</td>
+            <td>${nivelMap[r.cedula] || ''}</td>
           `;
           tabla.appendChild(tr);
         });
 
-        document.getElementById('totalDia').textContent = `Día: ${d}`;
+        document.getElementById('totalDia').textContent = `Dia: ${d}`;
         document.getElementById('totalNoche').textContent = `Noche: ${n}`;
         document.getElementById('totalGeneral').textContent = `Total: ${reservas.length}`;
         document.getElementById('containerTotales').style.display = 'flex';
         document.getElementById('filtrosExtras').style.display = 'flex';
 
-        // filtros extra
         document.getElementById('cedulaFiltro').oninput = () => {
           const val = document.getElementById('cedulaFiltro').value.toLowerCase();
           tabla.querySelectorAll('tr').forEach(row => {
             row.style.display = row.cells[0].textContent.toLowerCase().includes(val) ? '' : 'none';
           });
-        };
+        };        
         document.getElementById('areaFiltro').oninput = () => {
           const val = document.getElementById('areaFiltro').value.toLowerCase();
           tabla.querySelectorAll('tr').forEach(row => {
